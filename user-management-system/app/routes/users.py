@@ -14,7 +14,7 @@ User management endpoints:
     DELETE /users/{user_id}  — Delete any user by ID.
 """
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from app.database.models import User
@@ -100,14 +100,19 @@ def delete_me(
     "",
     response_model=list[UserResponse],
     summary="[Admin] List all users",
-    description="Returns a list of all registered users. Requires admin privileges.",
+    description=(
+        "Returns a paginated list of registered users. Requires admin privileges. "
+        "Use `skip` and `limit` query parameters to page through results."
+    ),
 )
 def list_all_users(
+    skip: int = Query(default=0, ge=0, description="Number of records to skip"),
+    limit: int = Query(default=100, ge=1, le=1000, description="Maximum number of records to return"),
     _admin: User = Depends(get_admin_user),
     db: Session = Depends(get_db),
 ) -> list[UserResponse]:
-    """Return every user in the system. Admin only."""
-    return get_all_users(db)
+    """Return a paginated list of users. Admin only."""
+    return get_all_users(db, skip=skip, limit=limit)
 
 
 @router.get(
