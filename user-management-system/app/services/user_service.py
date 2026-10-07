@@ -44,19 +44,21 @@ def get_user_by_email(db: Session, email: str) -> User | None:
     return db.query(User).filter(User.email == email).first()
 
 
-def get_all_users(db: Session) -> list[User]:
+def get_all_users(db: Session, skip: int = 0, limit: int = 100) -> list[User]:
     """
-    Retrieve every user in the database.
+    Retrieve a paginated list of users from the database.
 
     This is an admin-only operation; the route enforces that.
 
     Args:
-        db: The active database session.
+        db:    The active database session.
+        skip:  Number of records to skip (offset). Defaults to 0.
+        limit: Maximum number of records to return. Defaults to 100.
 
     Returns:
-        A list of all User ORM objects (may be empty).
+        A list of User ORM objects for the requested page (may be empty).
     """
-    return db.query(User).all()
+    return db.query(User).offset(skip).limit(limit).all()
 
 
 def create_user(db: Session, user_data: UserCreate) -> User:
